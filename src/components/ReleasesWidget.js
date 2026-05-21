@@ -84,7 +84,7 @@ const ReleasesWidget = ({
 
   const headerStyle = {
     display: isVeryNarrow ? 'none' : 'grid',
-    gridTemplateColumns: '2fr 1fr 1fr',
+    gridTemplateColumns: '4fr 1fr 1fr',
     gap: isNarrow ? '8px' : '16px',
     padding: isVeryNarrow ? '4px 8px' : isNarrow ? '6px 8px' : '12px 16px',
     backgroundColor: colors.ashWhite,
