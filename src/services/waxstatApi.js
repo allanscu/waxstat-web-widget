@@ -16,6 +16,36 @@ const apiClient = axios.create({
 // Helper to determine if we should use serverless functions
 const isProduction = typeof window !== 'undefined' && window.location.hostname !== 'localhost';
 
+// Cache management for box data
+const CACHE_KEY_PREFIX = 'waxstat-box-';
+const CACHE_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+const getCachedBox = (slug) => {
+  try {
+    const cached = localStorage.getItem(CACHE_KEY_PREFIX + slug);
+    if (!cached) return null;
+    const { data, timestamp } = JSON.parse(cached);
+    if (Date.now() - timestamp > CACHE_EXPIRY_MS) {
+      localStorage.removeItem(CACHE_KEY_PREFIX + slug);
+      return null;
+    }
+    return data;
+  } catch (error) {
+    return null;
+  }
+};
+
+const setCachedBox = (slug, data) => {
+  try {
+    localStorage.setItem(CACHE_KEY_PREFIX + slug, JSON.stringify({
+      data,
+      timestamp: Date.now()
+    }));
+  } catch (error) {
+    console.error('Error caching box data:', error);
+  }
+};
+
 export const searchBoxes = async (term) => {
   try {
     if (isProduction) {
@@ -34,15 +64,33 @@ export const searchBoxes = async (term) => {
 
 export const getBoxBySlug = async (slug) => {
   try {
+    // Check cache first
+    const cached = getCachedBox(slug);
+    if (cached) {
+      console.log('Using cached box data for:', slug);
+      return cached;
+    }
+
+    let data;
     if (isProduction) {
       const response = await fetch(`/api/box-details?slug=${encodeURIComponent(slug)}`);
-      return await response.json();
+      data = await response.json();
     } else {
       const response = await apiClient.get(`/v1/boxes/${slug}`);
-      return response.data;
+      data = response.data;
     }
+
+    // Cache the result
+    if (data) {
+      setCachedBox(slug, data);
+    }
+
+    return data;
   } catch (error) {
     console.error('Error fetching box:', error);
+    // Return cached data if available even if fetch fails
+    const cached = getCachedBox(slug);
+    if (cached) return cached;
     throw error;
   }
 };
@@ -99,6 +147,15 @@ export const getTopReleases = async (limit = 5) => {
 
 export const getBoxDetails = async (slug) => {
   try {
+    // Check cache first
+    const cached = getCachedBox(slug);
+    if (cached) {
+      return {
+        ...cached,
+        image: `https://slabstat-production.s3.amazonaws.com/Listings/${slug}.png`
+      };
+    }
+
     let box;
     if (isProduction) {
       const response = await fetch(`/api/box-details?slug=${encodeURIComponent(slug)}`);
@@ -108,12 +165,25 @@ export const getBoxDetails = async (slug) => {
       box = response.data;
     }
 
+    // Cache the result
+    if (box) {
+      setCachedBox(slug, box);
+    }
+
     return {
       ...box,
       image: `https://slabstat-production.s3.amazonaws.com/Listings/${slug}.png`
     };
   } catch (error) {
     console.error(`Error fetching details for ${slug}:`, error);
+    // Return cached data if available even if fetch fails
+    const cached = getCachedBox(slug);
+    if (cached) {
+      return {
+        ...cached,
+        image: `https://slabstat-production.s3.amazonaws.com/Listings/${slug}.png`
+      };
+    }
     return null;
   }
 };
