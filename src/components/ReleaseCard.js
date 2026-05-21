@@ -4,7 +4,12 @@ import { colors } from '../styles/brandColors';
 const ReleaseCard = ({ box, waxstatUrl = 'https://www.waxstat.com', containerWidth = 728 }) => {
   const [imageUrl, setImageUrl] = useState(null);
   const price = parseFloat(box['waxstat-avg']) || 0;
-  const boxUrl = `${waxstatUrl}/boxes/${box.slug}`;
+  const slug = box.slug || box.id;
+  const boxUrl = `${waxstatUrl}/boxes/${slug}`;
+
+  if (!slug) {
+    console.warn('ReleaseCard: Missing slug or id for box:', box);
+  }
 
   // Responsive sizing based on container width
   const isVeryNarrow = containerWidth < 200;

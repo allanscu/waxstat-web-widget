@@ -239,11 +239,21 @@ export const scrapeWeeklyReleases = async (weekStart) => {
       const details = await getBoxDetails(slug);
       if (details) {
         boxes.push({
-          slug: details.slug,
+          slug: details.slug || slug,
           name: details.name || slug.replace(/-/g, ' '),
           'waxstat-avg': details['waxstat-avg'],
           release_date: details.release_date || weekStart.toISOString().split('T')[0],
           image: details.image
+        });
+      } else {
+        // Fallback if details fetch fails
+        console.warn('Could not fetch details for slug:', slug);
+        boxes.push({
+          slug,
+          name: slug.replace(/-/g, ' '),
+          'waxstat-avg': null,
+          release_date: weekStart.toISOString().split('T')[0],
+          image: `https://slabstat-production.s3.amazonaws.com/Listings/${slug}.png`
         });
       }
     }
@@ -275,13 +285,17 @@ export const getWeekReleases = async (weekStart, limit = 50) => {
     // Filter releases within the week and sort by date, add image URLs
     let weekReleases = boxes
       .filter(box => {
-        if (!box.release_date) return false;
+        if (!box.release_date || !box.slug) {
+          console.warn('Skipping box without release_date or slug:', box);
+          return false;
+        }
         const releaseDate = new Date(box.release_date);
         return releaseDate >= weekStart && releaseDate <= weekEnd;
       })
       .map(box => ({
         ...box,
-        image: `https://slabstat-production.s3.amazonaws.com/Listings/${box.slug}.png`
+        slug: box.slug || box.id,
+        image: `https://slabstat-production.s3.amazonaws.com/Listings/${box.slug || box.id}.png`
       }))
       .sort((a, b) => {
         const dateA = new Date(a.release_date);
