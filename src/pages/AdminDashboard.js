@@ -337,7 +337,7 @@ const AdminDashboard = () => {
       </button>
       <div style={containerStyle}>
         <div style={headerStyle}>
-          <div style={logoStyle}>🎁</div>
+          <img src="/waxstat-logo.svg" alt="Waxstat" style={{ height: '48px', marginBottom: '16px' }} />
           <h1 style={titleStyle}>Waxstat Web Widget</h1>
           <p style={subtitleStyle}>
             Choose your preferred ad format and get the embed code
