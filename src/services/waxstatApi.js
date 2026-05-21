@@ -76,6 +76,20 @@ export const getTopReleases = async (limit = 5) => {
   }
 };
 
+export const getBoxDetails = async (slug) => {
+  try {
+    const response = await apiClient.get(`/v1/boxes/${slug}`);
+    const box = response.data;
+    return {
+      ...box,
+      image: `https://slabstat-production.s3.amazonaws.com/Listings/${slug}.png`
+    };
+  } catch (error) {
+    console.error(`Error fetching details for ${slug}:`, error);
+    return null;
+  }
+};
+
 export const scrapeWeeklyReleases = async (weekStart) => {
   try {
     const weekEnd = new Date(weekStart);
@@ -100,40 +114,36 @@ export const scrapeWeeklyReleases = async (weekStart) => {
     const response = await fetch(url);
     const html = await response.text();
 
-    // Simple extraction of box slugs and prices from the page
+    // Extract box slugs from the page
     const boxes = [];
     const lines = html.split('\n');
+    const slugs = new Set();
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
-      if (line.includes('data-slug=') || line.includes('href="/boxes/')) {
-        const slugMatch = line.match(/(?:data-slug="|\/boxes\/)([^"]+)/);
+      if (line.includes('href="/boxes/')) {
+        const slugMatch = line.match(/href="\/boxes\/([^"]+)"/);
         if (slugMatch) {
-          const slug = slugMatch[1];
-          // Try to find the name and price nearby
-          let name = slug.replace(/-/g, ' ').toUpperCase();
-          let price = null;
-
-          // Look ahead for price info
-          for (let j = i; j < Math.min(i + 5, lines.length); j++) {
-            const priceMatch = lines[j].match(/\$(\d+\.?\d*)/);
-            if (priceMatch) {
-              price = parseFloat(priceMatch[1]);
-              break;
-            }
-          }
-
-          boxes.push({
-            slug: slug,
-            name: name,
-            'waxstat-avg': price,
-            release_date: weekStart.toISOString().split('T')[0]
-          });
+          slugs.add(slugMatch[1]);
         }
       }
     }
 
-    return boxes.slice(0, 5); // Return top 5
+    // Fetch detailed info for each slug
+    for (const slug of Array.from(slugs).slice(0, 5)) {
+      const details = await getBoxDetails(slug);
+      if (details) {
+        boxes.push({
+          slug: details.slug,
+          name: details.name || slug.replace(/-/g, ' '),
+          'waxstat-avg': details['waxstat-avg'],
+          release_date: details.release_date || weekStart.toISOString().split('T')[0],
+          image: details.image
+        });
+      }
+    }
+
+    return boxes;
   } catch (error) {
     console.error('Error scraping weekly releases:', error.message);
     return [];
@@ -149,13 +159,17 @@ export const getWeekReleases = async (weekStart, limit = 50) => {
     const response = await apiClient.get(`/v1/boxes/search/2026`);
     const boxes = response.data.boxes || [];
 
-    // Filter releases within the week and sort by date
+    // Filter releases within the week and sort by date, add image URLs
     let weekReleases = boxes
       .filter(box => {
         if (!box.release_date) return false;
         const releaseDate = new Date(box.release_date);
         return releaseDate >= weekStart && releaseDate <= weekEnd;
       })
+      .map(box => ({
+        ...box,
+        image: `https://slabstat-production.s3.amazonaws.com/Listings/${box.slug}.png`
+      }))
       .sort((a, b) => {
         const dateA = new Date(a.release_date);
         const dateB = new Date(b.release_date);

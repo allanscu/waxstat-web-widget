@@ -9,27 +9,14 @@ const ReleaseCard = ({ box, waxstatUrl = 'https://waxstat.com', containerWidth =
   // Responsive sizing based on container width
   const isVeryNarrow = containerWidth < 200;
   const isNarrow = containerWidth < 350;
-  const showImage = containerWidth > 600; // Only show images in responsive/wide formats
+  const showImage = containerWidth > 250; // Show images in medium and larger formats
 
-  // Fetch product image only for wide formats
+  // Use image from box object if available
   useEffect(() => {
-    if (!showImage) return;
-
-    const fetchImage = async () => {
-      try {
-        const url = `${waxstatUrl}/boxes/${box.slug}`;
-        const response = await fetch(`/api/proxy?url=${encodeURIComponent(url)}`);
-        const data = await response.json();
-        if (data.imageUrl) {
-          setImageUrl(data.imageUrl);
-        }
-      } catch (error) {
-        console.error('Error fetching image:', error);
-      }
-    };
-
-    fetchImage();
-  }, [box.slug, waxstatUrl, showImage]);
+    if (box.image) {
+      setImageUrl(box.image);
+    }
+  }, [box.image]);
 
   const formatDate = (dateStr) => {
     if (!dateStr) return '-';
