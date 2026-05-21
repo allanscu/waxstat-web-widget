@@ -23,12 +23,34 @@ const ReleaseCard = ({ box, waxstatUrl = 'https://www.waxstat.com', containerWid
     }
   }, [box.image]);
 
-  const formatDate = (dateStr) => {
+  const capitalizeWords = (str) => {
+    if (!str) return '';
+    return str
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
+
+  const formatSeasonDate = (dateStr) => {
     if (!dateStr) return '-';
     const date = new Date(dateStr);
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${month}/${day}`;
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+
+    // May-August (5-8) are part of next year's season
+    // September-April (9-12, 1-4) are part of current year's season
+    let seasonStart, seasonEnd;
+    if (month >= 5 && month <= 8) {
+      seasonStart = year;
+      seasonEnd = year + 1;
+    } else {
+      seasonStart = year - 1;
+      seasonEnd = year;
+    }
+
+    const startYY = String(seasonStart).slice(-2);
+    const endYY = String(seasonEnd).slice(-2);
+    return `${startYY}-${endYY}`;
   };
 
   const rowStyle = {
@@ -128,9 +150,9 @@ const ReleaseCard = ({ box, waxstatUrl = 'https://www.waxstat.com', containerWid
             )}
           </div>
         )}
-        <div style={nameStyle}>{box.name}</div>
+        <div style={nameStyle}>{capitalizeWords(box.name)}</div>
       </div>
-      <div style={cellStyle}>{formatDate(box.release_date)}</div>
+      <div style={cellStyle}>{formatSeasonDate(box.release_date)}</div>
       <div style={priceStyle}>${price > 0 ? price.toFixed(2) : '-'}</div>
     </a>
   );
