@@ -94,11 +94,6 @@ const AdminDashboard = () => {
     marginBottom: '24px',
   };
 
-  const logoStyle = {
-    fontSize: '48px',
-    marginBottom: '16px',
-  };
-
   const formatSelectorStyle = {
     marginBottom: '32px',
     backgroundColor: colors.white,
