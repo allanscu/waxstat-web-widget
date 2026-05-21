@@ -149,17 +149,15 @@ export const scrapeWeeklyReleases = async (weekStart) => {
       const response = await fetch(url);
       const html = await response.text();
 
-      // Extract box slugs from the page
-      const lines = html.split('\n');
+      // Extract box slugs from actual product rows
       const slugSet = new Set();
+      const slugMatches = html.matchAll(/href="\/boxes\/([^"]+)"\s+data-turbolinks="false"/g);
 
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        if (line.includes('href="/boxes/')) {
-          const slugMatch = line.match(/href="\/boxes\/([^"]+)"/);
-          if (slugMatch) {
-            slugSet.add(slugMatch[1]);
-          }
+      for (const match of slugMatches) {
+        const slug = match[1];
+        // Filter out template syntax and invalid slugs
+        if (slug && !slug.includes('{{') && !slug.includes('}}') && slug.length > 3) {
+          slugSet.add(slug);
         }
       }
       slugs = Array.from(slugSet);

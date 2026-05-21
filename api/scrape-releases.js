@@ -15,21 +15,21 @@ export default async function handler(req, res) {
 
     const html = await response.text();
 
-    // Extract box slugs from the page
+    // Extract box slugs from actual product rows (data-turbolinks="false" links)
     const slugs = new Set();
-    const lines = html.split('\n');
 
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      if (line.includes('href="/boxes/')) {
-        const slugMatch = line.match(/href="\/boxes\/([^"]+)"/);
-        if (slugMatch) {
-          slugs.add(slugMatch[1]);
-        }
+    // Match patterns like: <a href="/boxes/2026-panini-donruss-baseball-hobby-box" data-turbolinks="false">
+    const slugMatches = html.matchAll(/href="\/boxes\/([^"]+)"\s+data-turbolinks="false"/g);
+
+    for (const match of slugMatches) {
+      const slug = match[1];
+      // Filter out template syntax and invalid slugs
+      if (slug && !slug.includes('{{') && !slug.includes('}}') && slug.length > 3) {
+        slugs.add(slug);
       }
     }
 
-    res.status(200).json({ slugs: Array.from(slugs) });
+    res.status(200).json({ slugs: Array.from(slugs).slice(0, 50) });
   } catch (error) {
     console.error('Error scraping releases:', error);
     res.status(500).json({ error: error.message, slugs: [] });
