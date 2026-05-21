@@ -100,11 +100,6 @@ export const scrapeWeeklyReleases = async (weekStart) => {
     const response = await fetch(url);
     const html = await response.text();
 
-    // Parse HTML to extract release data
-    // Look for release entries in the page
-    const boxPattern = /data-slug="([^"]+)"|href="\/boxes\/([^"]+)"/g;
-    const namePattern = />([^<]+)<\/[a-z]+>\s*<div[^>]*>(\$[\d.]+)/g;
-
     // Simple extraction of box slugs and prices from the page
     const boxes = [];
     const lines = html.split('\n');
