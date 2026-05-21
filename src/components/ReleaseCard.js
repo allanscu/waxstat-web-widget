@@ -9,7 +9,6 @@ const ReleaseCard = ({ box, waxstatUrl = 'https://waxstat.com', containerWidth =
   // Responsive sizing based on container width
   const isVeryNarrow = containerWidth < 200;
   const isNarrow = containerWidth < 350;
-  const isMedium = containerWidth < 600;
   const showImage = containerWidth > 600; // Only show images in responsive/wide formats
 
   // Fetch product image only for wide formats

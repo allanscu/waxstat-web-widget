@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReleaseCard from './ReleaseCard';
-import { getTopReleases, getWeekReleases } from '../services/waxstatApi';
+import { getWeekReleases } from '../services/waxstatApi';
 import { colors } from '../styles/brandColors';
 
 const ReleasesWidget = ({
@@ -73,7 +73,6 @@ const ReleasesWidget = ({
   // Responsive sizing based on container width
   const isVeryNarrow = containerWidth < 200; // Skyscraper
   const isNarrow = containerWidth < 350;     // Banners
-  const isMedium = containerWidth < 600;     // Small squares
 
   const containerStyle = {
     fontFamily: '"ROC Grotesk", system-ui, sans-serif',
@@ -81,15 +80,6 @@ const ReleasesWidget = ({
     borderRadius: '4px',
     border: `1px solid ${colors.lightGray}`,
     overflow: 'hidden',
-  };
-
-  const titleStyle = {
-    fontSize: isVeryNarrow ? '10px' : isNarrow ? '12px' : '16px',
-    fontWeight: '600',
-    color: colors.onyx,
-    padding: isVeryNarrow ? '6px 8px' : isNarrow ? '8px 12px' : '16px',
-    borderBottom: `1px solid ${colors.lightGray}`,
-    margin: 0,
   };
 
   const headerStyle = {
@@ -139,20 +129,9 @@ const ReleasesWidget = ({
     backgroundColor: colors.white,
   };
 
-  const logoHeaderStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: isNarrow ? '4px' : '8px',
-    flexShrink: 0,
-  };
-
   const logoStyle = {
     height: isNarrow ? '18px' : '24px',
     flexShrink: 0,
-  };
-
-  const titleStyle2 = {
-    display: 'none',
   };
 
   const weekDisplayStyle = {

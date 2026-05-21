@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import WidgetContainer, { WIDGET_FORMATS } from '../components/WidgetContainer';
-import ReleasesWidget from '../components/ReleasesWidget';
 import { colors } from '../styles/brandColors';
 
 const AdminDashboard = () => {
