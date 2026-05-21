@@ -1,70 +1,138 @@
-# Getting Started with Create React App
+# Waxstat Web Widget
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A React-based embeddable widget that displays the top 5 product releases for the current week, fetched from the Waxstat API. Perfect for embedding on partner websites like 130point.com.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+- **Top 5 Releases**: Displays the top 5 products released this week, sorted by average price
+- **Product Details**: Shows product name, average price, and 7-day price trend chart
+- **Brand Kit Compliant**: Uses official Waxstat colors (Teal, Onyx, Ash White) and typography
+- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile
+- **Direct Links**: Each product links back to the corresponding Waxstat product page
+- **Admin Dashboard**: Preview the widget and get embed code
 
-### `npm start`
+## Project Structure
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+```
+src/
+├── components/
+│   ├── ReleasesWidget.js      # Main widget component
+│   ├── ReleaseCard.js         # Individual product card
+│   └── PriceChart.js          # 7-day price chart
+├── pages/
+│   └── AdminDashboard.js      # Admin preview & embed code
+├── services/
+│   └── waxstatApi.js          # API integration
+├── styles/
+│   └── brandColors.js         # Brand colors & typography
+└── App.js                      # Main app component
+```
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Setup
 
-### `npm test`
+1. **Install dependencies**:
+   ```bash
+   npm install
+   ```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+2. **Add environment variables** in `.env.local`:
+   ```
+   REACT_APP_API_BASE_URL=https://api.waxstat.com
+   REACT_APP_API_KEY=YOUR_API_KEY
+   REACT_APP_WAXSTAT_URL=https://waxstat.com
+   ```
 
-### `npm run build`
+3. **Start development server**:
+   ```bash
+   npm start
+   ```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Embedding on Third-Party Sites
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Simple Embed Code
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Add this HTML snippet anywhere on your website:
 
-### `npm run eject`
+```html
+<script>
+  (function() {
+    const script = document.createElement('script');
+    script.src = 'https://waxstat-web-widget.vercel.app/widget.js';
+    script.async = true;
+    document.head.appendChild(script);
+  })();
+</script>
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+<div id="waxstat-releases-widget"></div>
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+The widget will automatically:
+- Load required dependencies
+- Fetch the latest releases
+- Render a responsive grid of products
+- Link to Waxstat product pages
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Customization
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### Widget Props (for internal use)
 
-## Learn More
+```jsx
+<ReleasesWidget 
+  title="Custom Title"
+  limit={5}
+/>
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+- `title` (string): Custom widget title
+- `limit` (number): Number of releases to display
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## API Integration
 
-### Code Splitting
+The widget uses the Waxstat API to fetch:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+- **Endpoint**: `/v1/boxes/search/{term}`
+- **Method**: GET
+- **Authentication**: API-KEY header
+- **Response**: Array of box objects with name, slug, price, image, and release_date
 
-### Analyzing the Bundle Size
+## Deployment
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### Build for Production
 
-### Making a Progressive Web App
+```bash
+npm run build
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+The widget is designed to be deployed to Vercel or any static hosting service.
 
-### Advanced Configuration
+### Deployment Steps
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+1. Deploy to Vercel, Netlify, or your hosting provider
+2. Update the embed code URL to point to your hosted domain
+3. Share the embed code with 130point.com owner
+4. Owner pastes the code into their HTML
 
-### Deployment
+## Brand Kit Compliance
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+This widget adheres to the official Waxstat brand kit:
 
-### `npm run build` fails to minify
+- **Primary Color**: Teal (#71D8A7)
+- **Text Color**: Onyx (#231F20)
+- **Background**: Ash White (#EFEFEF)
+- **Typography**: ROC Grotesk (body), Apotek Extended (headlines)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## Browser Support
+
+- Chrome (latest)
+- Firefox (latest)
+- Safari (latest)
+- Edge (latest)
+- Mobile browsers (iOS Safari, Chrome Mobile)
+
+## License
+
+Proprietary - Waxstat
+
+## Contact
+
+For questions or support, contact: allan@waxstat.com
