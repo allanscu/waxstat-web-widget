@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { colors } from '../styles/brandColors';
 
-const ReleaseCard = ({ box, waxstatUrl = 'https://waxstat.com', containerWidth = 728 }) => {
+const ReleaseCard = ({ box, waxstatUrl = 'https://www.waxstat.com', containerWidth = 728 }) => {
   const [imageUrl, setImageUrl] = useState(null);
   const price = parseFloat(box['waxstat-avg']) || 0;
   const boxUrl = `${waxstatUrl}/boxes/${box.slug}`;

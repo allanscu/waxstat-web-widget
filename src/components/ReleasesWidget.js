@@ -204,7 +204,12 @@ const ReleasesWidget = ({
       </div>
       <div style={listStyle}>
         {releases.map((box) => (
-          <ReleaseCard key={box.slug} box={box} containerWidth={containerWidth} />
+          <ReleaseCard
+            key={box.slug}
+            box={box}
+            containerWidth={containerWidth}
+            waxstatUrl="https://www.waxstat.com"
+          />
         ))}
       </div>
       {releases.length === 0 && (
