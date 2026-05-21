@@ -1,12 +1,11 @@
 import axios from 'axios';
 
 const API_KEY = process.env.REACT_APP_API_KEY;
-
-// Use local proxy in development, full URL in production
-const API_BASE_URL = process.env.NODE_ENV === 'development' ? '/api' : process.env.REACT_APP_API_BASE_URL;
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 console.log('API Config:', { API_BASE_URL, API_KEY: API_KEY ? '***set***' : 'NOT SET' });
 
+// Create axios client for waxstat API calls
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -14,10 +13,19 @@ const apiClient = axios.create({
   },
 });
 
+// Helper to determine if we should use serverless functions
+const isProduction = typeof window !== 'undefined' && window.location.hostname !== 'localhost';
+
 export const searchBoxes = async (term) => {
   try {
-    const response = await apiClient.get(`/v1/boxes/search/${term}`);
-    return response.data.boxes || [];
+    if (isProduction) {
+      const response = await fetch(`/api/boxes-search?query=${encodeURIComponent(term)}`);
+      const data = await response.json();
+      return data.boxes || [];
+    } else {
+      const response = await apiClient.get(`/v1/boxes/search/${term}`);
+      return response.data.boxes || [];
+    }
   } catch (error) {
     console.error('Error searching boxes:', error);
     throw error;
@@ -26,8 +34,13 @@ export const searchBoxes = async (term) => {
 
 export const getBoxBySlug = async (slug) => {
   try {
-    const response = await apiClient.get(`/v1/boxes/${slug}`);
-    return response.data;
+    if (isProduction) {
+      const response = await fetch(`/api/box-details?slug=${encodeURIComponent(slug)}`);
+      return await response.json();
+    } else {
+      const response = await apiClient.get(`/v1/boxes/${slug}`);
+      return response.data;
+    }
   } catch (error) {
     console.error('Error fetching box:', error);
     throw error;
@@ -37,8 +50,16 @@ export const getBoxBySlug = async (slug) => {
 export const getTopReleases = async (limit = 5) => {
   try {
     console.log('Fetching releases...');
-    const response = await apiClient.get(`/v1/boxes/search/2026`);
-    const boxes = response.data.boxes || [];
+    let boxes = [];
+
+    if (isProduction) {
+      const response = await fetch(`/api/boxes-search?query=2026`);
+      const data = await response.json();
+      boxes = data.boxes || [];
+    } else {
+      const response = await apiClient.get(`/v1/boxes/search/2026`);
+      boxes = response.data.boxes || [];
+    }
 
     // Sort by release_date (most recent first)
     let sortedByDate = boxes
@@ -78,8 +99,15 @@ export const getTopReleases = async (limit = 5) => {
 
 export const getBoxDetails = async (slug) => {
   try {
-    const response = await apiClient.get(`/v1/boxes/${slug}`);
-    const box = response.data;
+    let box;
+    if (isProduction) {
+      const response = await fetch(`/api/box-details?slug=${encodeURIComponent(slug)}`);
+      box = await response.json();
+    } else {
+      const response = await apiClient.get(`/v1/boxes/${slug}`);
+      box = response.data;
+    }
+
     return {
       ...box,
       image: `https://slabstat-production.s3.amazonaws.com/Listings/${slug}.png`
@@ -107,30 +135,39 @@ export const scrapeWeeklyReleases = async (weekStart) => {
 
     const startStr = formatDate(weekStart);
     const endStr = formatDate(weekEnd);
-    const url = `https://www.waxstat.com/release-dates/${startStr}-${endStr}`;
 
-    console.log(`Scraping releases for week: ${url}`);
+    console.log(`Scraping releases for week: ${startStr}-${endStr}`);
 
-    const response = await fetch(url);
-    const html = await response.text();
+    // Use serverless function to scrape
+    let slugs = [];
+    if (isProduction) {
+      const response = await fetch(`/api/scrape-releases?startDate=${startStr}&endDate=${endStr}`);
+      const data = await response.json();
+      slugs = data.slugs || [];
+    } else {
+      const url = `https://www.waxstat.com/release-dates/${startStr}-${endStr}`;
+      const response = await fetch(url);
+      const html = await response.text();
 
-    // Extract box slugs from the page
-    const boxes = [];
-    const lines = html.split('\n');
-    const slugs = new Set();
+      // Extract box slugs from the page
+      const lines = html.split('\n');
+      const slugSet = new Set();
 
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      if (line.includes('href="/boxes/')) {
-        const slugMatch = line.match(/href="\/boxes\/([^"]+)"/);
-        if (slugMatch) {
-          slugs.add(slugMatch[1]);
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (line.includes('href="/boxes/')) {
+          const slugMatch = line.match(/href="\/boxes\/([^"]+)"/);
+          if (slugMatch) {
+            slugSet.add(slugMatch[1]);
+          }
         }
       }
+      slugs = Array.from(slugSet);
     }
 
     // Fetch detailed info for each slug
-    for (const slug of Array.from(slugs).slice(0, 5)) {
+    const boxes = [];
+    for (const slug of slugs.slice(0, 5)) {
       const details = await getBoxDetails(slug);
       if (details) {
         boxes.push({
@@ -156,8 +193,16 @@ export const getWeekReleases = async (weekStart, limit = 50) => {
     weekEnd.setDate(weekEnd.getDate() + 6);
 
     console.log(`Fetching releases for week ${weekStart.toDateString()}`);
-    const response = await apiClient.get(`/v1/boxes/search/2026`);
-    const boxes = response.data.boxes || [];
+    let boxes = [];
+
+    if (isProduction) {
+      const response = await fetch(`/api/boxes-search?query=2026`);
+      const data = await response.json();
+      boxes = data.boxes || [];
+    } else {
+      const response = await apiClient.get(`/v1/boxes/search/2026`);
+      boxes = response.data.boxes || [];
+    }
 
     // Filter releases within the week and sort by date, add image URLs
     let weekReleases = boxes
