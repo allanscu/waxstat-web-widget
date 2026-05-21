@@ -1,11 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import WidgetContainer, { WIDGET_FORMATS } from '../components/WidgetContainer';
 import { colors } from '../styles/brandColors';
+import { VERSION } from '../version';
 
 const AdminDashboard = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState('');
   const [selectedFormat, setSelectedFormat] = useState('responsive');
   const [showCode, setShowCode] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    const authToken = localStorage.getItem('waxstat-widget-auth');
+    if (authToken === 'authenticated') {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (password === 'abc12345') {
+      setIsAuthenticated(true);
+      localStorage.setItem('waxstat-widget-auth', 'authenticated');
+      setPassword('');
+    } else {
+      alert('Incorrect password');
+      setPassword('');
+    }
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem('waxstat-widget-auth');
+  };
 
   const formatOptions = [
     { key: WIDGET_FORMATS.RESPONSIVE, label: 'Responsive (Full Width)', size: '100%' },
@@ -192,8 +219,122 @@ const AdminDashboard = () => {
     color: colors.onyx,
   };
 
+  const loginFormStyle = {
+    minHeight: '100vh',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.ashWhite,
+  };
+
+  const loginContainerStyle = {
+    backgroundColor: colors.white,
+    padding: '48px',
+    borderRadius: '8px',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+    maxWidth: '400px',
+    width: '100%',
+  };
+
+  const loginLogoStyle = {
+    fontSize: '64px',
+    textAlign: 'center',
+    marginBottom: '24px',
+  };
+
+  const loginTitleStyle = {
+    fontSize: '24px',
+    fontWeight: 'bold',
+    color: colors.onyx,
+    textAlign: 'center',
+    marginBottom: '32px',
+  };
+
+  const loginInputStyle = {
+    width: '100%',
+    padding: '12px',
+    fontSize: '14px',
+    border: `1px solid ${colors.lightGray}`,
+    borderRadius: '4px',
+    marginBottom: '16px',
+    boxSizing: 'border-box',
+  };
+
+  const loginButtonStyle = {
+    width: '100%',
+    padding: '12px',
+    backgroundColor: colors.teal,
+    color: colors.white,
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '14px',
+    fontWeight: '600',
+    transition: 'background-color 0.3s ease',
+  };
+
+  const versionStyle = {
+    fontSize: '12px',
+    color: colors.darkGray,
+    textAlign: 'center',
+    paddingTop: '24px',
+    borderTop: `1px solid ${colors.lightGray}`,
+  };
+
+  const logoutButtonStyle = {
+    position: 'absolute',
+    top: '20px',
+    right: '20px',
+    padding: '8px 16px',
+    backgroundColor: colors.teal,
+    color: colors.white,
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '12px',
+    fontWeight: '500',
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <div style={loginFormStyle}>
+        <div style={loginContainerStyle}>
+          <div style={loginLogoStyle}>📦</div>
+          <h1 style={loginTitleStyle}>Waxstat Widget Admin</h1>
+          <form onSubmit={handleLogin}>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter password"
+              style={loginInputStyle}
+              autoFocus
+            />
+            <button
+              type="submit"
+              style={loginButtonStyle}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#5cc896'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = colors.teal}
+            >
+              Login
+            </button>
+          </form>
+          <div style={versionStyle}>Version {VERSION}</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={dashboardStyle}>
+      <button
+        onClick={handleLogout}
+        style={logoutButtonStyle}
+        onMouseEnter={(e) => e.target.style.backgroundColor = '#5cc896'}
+        onMouseLeave={(e) => e.target.style.backgroundColor = colors.teal}
+      >
+        Logout
+      </button>
       <div style={containerStyle}>
         <div style={headerStyle}>
           <div style={logoStyle}>🎁</div>
@@ -314,6 +455,11 @@ const AdminDashboard = () => {
               </ul>
             </div>
           </div>
+        </div>
+
+        {/* Version Footer */}
+        <div style={{ ...versionStyle, marginTop: '48px', paddingTop: '32px', textAlign: 'right', borderTop: 'none' }}>
+          Version {VERSION}
         </div>
       </div>
     </div>
