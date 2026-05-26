@@ -37,10 +37,10 @@ const ReleaseCard = ({ box, waxstatUrl = 'https://www.waxstat.com', containerWid
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
 
-    // May-August (5-8) are part of next year's season
-    // September-April (9-12, 1-4) are part of current year's season
+    // May-December (5-12) are part of current year's season
+    // January-April (1-4) are part of previous year's season
     let seasonStart, seasonEnd;
-    if (month >= 5 && month <= 8) {
+    if (month >= 5) {
       seasonStart = year;
       seasonEnd = year + 1;
     } else {
