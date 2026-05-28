@@ -52,30 +52,41 @@ const ReleaseCard = ({ box, waxstatUrl = 'https://www.waxstat.com', containerWid
 
   const formatReleaseDate = (dateStr) => {
     if (!dateStr) return '-';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return '-';
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    } catch (error) {
+      return '-';
+    }
   };
 
   const formatSeasonDate = (dateStr) => {
     if (!dateStr) return '-';
-    const date = new Date(dateStr);
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return '-';
 
-    // May-December (5-12) are part of current year's season
-    // January-April (1-4) are part of previous year's season
-    let seasonStart, seasonEnd;
-    if (month >= 5) {
-      seasonStart = year;
-      seasonEnd = year + 1;
-    } else {
-      seasonStart = year - 1;
-      seasonEnd = year;
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+
+      // May-December (5-12) are part of current year's season
+      // January-April (1-4) are part of previous year's season
+      let seasonStart, seasonEnd;
+      if (month >= 5) {
+        seasonStart = year;
+        seasonEnd = year + 1;
+      } else {
+        seasonStart = year - 1;
+        seasonEnd = year;
+      }
+
+      const startYY = String(seasonStart).slice(-2);
+      const endYY = String(seasonEnd).slice(-2);
+      return `${startYY}-${endYY}`;
+    } catch (error) {
+      return '-';
     }
-
-    const startYY = String(seasonStart).slice(-2);
-    const endYY = String(seasonEnd).slice(-2);
-    return `${startYY}-${endYY}`;
   };
 
   const rowStyle = {
