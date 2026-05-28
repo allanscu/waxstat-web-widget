@@ -127,14 +127,14 @@ const ReleasesWidget = ({
     display: hideNav ? 'none' : 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: isNarrow ? '8px 12px' : '12px 16px',
-    borderBottom: `2px solid ${colors.teal}`,
+    padding: logoOnly ? '4px 8px' : (isNarrow ? '8px 12px' : '12px 16px'),
+    borderBottom: logoOnly ? 'none' : `2px solid ${colors.teal}`,
     gap: isNarrow ? '8px' : '16px',
     backgroundColor: colors.white,
   };
 
   const logoStyle = {
-    height: isNarrow ? '18px' : '24px',
+    height: logoOnly ? '16px' : (isNarrow ? '18px' : '24px'),
     flexShrink: 0,
   };
 
@@ -217,6 +217,7 @@ const ReleasesWidget = ({
             box={box}
             containerWidth={containerWidth}
             waxstatUrl="https://www.waxstat.com"
+            logoOnly={logoOnly}
           />
         ))}
       </div>

@@ -17,7 +17,7 @@ function brandFallbackUrl(box) {
   return hit ? hit.url : null;
 }
 
-const ReleaseCard = ({ box, waxstatUrl = 'https://www.waxstat.com', containerWidth = 728 }) => {
+const ReleaseCard = ({ box, waxstatUrl = 'https://www.waxstat.com', containerWidth = 728, logoOnly = false }) => {
   const [imageUrl, setImageUrl] = useState(null);
   const [usedFallback, setUsedFallback] = useState(false);
   const price = parseFloat(box['waxstat-avg']) || 0;
@@ -74,14 +74,14 @@ const ReleaseCard = ({ box, waxstatUrl = 'https://www.waxstat.com', containerWid
 
   const rowStyle = {
     borderBottom: `1px solid ${colors.lightGray}`,
-    padding: isVeryNarrow ? '4px 6px' : isNarrow ? '6px 8px' : '12px 16px',
+    padding: logoOnly ? '2px 4px' : (isVeryNarrow ? '4px 6px' : isNarrow ? '6px 8px' : '12px 16px'),
     display: isVeryNarrow ? 'flex' : 'grid',
     flexDirection: isVeryNarrow ? 'row' : undefined,
     gridTemplateColumns: isVeryNarrow ? undefined : (isSquare ? '2fr 1fr 1fr' : '4fr 1fr 1fr'),
     gap: isNarrow ? '4px' : isVeryNarrow ? '3px' : '16px',
     alignItems: 'center',
     transition: 'background-color 0.2s ease',
-    fontSize: isVeryNarrow ? '9px' : isNarrow ? '10px' : '13px',
+    fontSize: logoOnly ? '10px' : (isVeryNarrow ? '9px' : isNarrow ? '10px' : '13px'),
   };
 
   const productColumnStyle = {
