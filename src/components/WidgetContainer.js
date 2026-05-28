@@ -2,7 +2,7 @@ import React from 'react';
 import ReleasesWidget from './ReleasesWidget';
 import { colors } from '../styles/brandColors';
 
-const WidgetContainer = ({ format = 'responsive' }) => {
+const WidgetContainer = ({ format = 'responsive', featuredSlug = null }) => {
   // Standard ad sizes (in pixels)
   const formats = {
     // Horizontal Banners
@@ -56,6 +56,7 @@ const WidgetContainer = ({ format = 'responsive' }) => {
           logoOnly={isLeaderboard}
           hideNav={!isLeaderboard && isHorizontalBanner}
           hideHeader={isHorizontalBanner}
+          featuredSlug={isLeaderboard ? featuredSlug : null}
         />
       </div>
     </div>

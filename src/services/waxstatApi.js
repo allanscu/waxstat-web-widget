@@ -221,8 +221,14 @@ export const scrapeWeeklyReleases = async (weekStart) => {
   }
 };
 
-export const getWeekReleases = async (weekStart, limit = 50) => {
+export const getWeekReleases = async (weekStart, limit = 50, slug = null) => {
   try {
+    // If a specific slug is provided, fetch just that box
+    if (slug) {
+      const box = await getBoxBySlug(slug);
+      return box ? [box] : [];
+    }
+
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekEnd.getDate() + 6);
 

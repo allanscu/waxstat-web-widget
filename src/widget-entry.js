@@ -21,18 +21,23 @@ function resolveFormat(container) {
   return 'responsive';
 }
 
+function resolveFeaturedSlug(container) {
+  return container && container.dataset ? container.dataset.featuredSlug || null : null;
+}
+
 const rootCache = new WeakMap();
 
 function render(container) {
   if (!container) return;
   const format = resolveFormat(container);
+  const featuredSlug = resolveFeaturedSlug(container);
 
   let root = rootCache.get(container);
   if (!root) {
     root = ReactDOM.createRoot(container);
     rootCache.set(container, root);
   }
-  root.render(React.createElement(WidgetContainer, { format }));
+  root.render(React.createElement(WidgetContainer, { format, featuredSlug }));
 }
 
 function init() {

@@ -11,6 +11,7 @@ const ReleasesWidget = ({
   hideNav = false,
   hideHeader = false,
   logoOnly = false,
+  featuredSlug = null,
   itemStyle = {}
 }) => {
   const [releases, setReleases] = useState([]);
@@ -41,8 +42,18 @@ const ReleasesWidget = ({
     const fetchReleases = async () => {
       try {
         setLoading(true);
-        const weekStart = getWeekStart(weekOffset);
-        const data = await getWeekReleases(weekStart, limit);
+        let data;
+
+        if (featuredSlug) {
+          // Fetch a single featured product
+          const box = await getWeekReleases(null, 1, featuredSlug);
+          data = box ? [box] : [];
+        } else {
+          // Fetch weekly releases
+          const weekStart = getWeekStart(weekOffset);
+          data = await getWeekReleases(weekStart, limit);
+        }
+
         setReleases(data);
       } catch (err) {
         setError('Failed to load releases');
@@ -53,7 +64,7 @@ const ReleasesWidget = ({
     };
 
     fetchReleases();
-  }, [limit, weekOffset]);
+  }, [limit, weekOffset, featuredSlug]);
 
   // Measure container width for responsive sizing
   useEffect(() => {
