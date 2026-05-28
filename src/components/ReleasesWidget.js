@@ -10,6 +10,7 @@ const ReleasesWidget = ({
   hideTitle = false,
   hideNav = false,
   hideHeader = false,
+  logoOnly = false,
   itemStyle = {}
 }) => {
   const [releases, setReleases] = useState([]);
@@ -182,23 +183,27 @@ const ReleasesWidget = ({
           alt="Waxstat Release Calendar"
           style={logoStyle}
         />
-        <div style={weekDisplayStyle}>{formatWeekRange(weekStart)}</div>
-        <button
-          style={buttonStyle}
-          onMouseEnter={(e) => e.target.style.backgroundColor = '#5cc896'}
-          onMouseLeave={(e) => e.target.style.backgroundColor = colors.teal}
-          onClick={() => setWeekOffset(weekOffset - 1)}
-        >
-          ← Previous
-        </button>
-        <button
-          style={buttonStyle}
-          onMouseEnter={(e) => e.target.style.backgroundColor = '#5cc896'}
-          onMouseLeave={(e) => e.target.style.backgroundColor = colors.teal}
-          onClick={() => setWeekOffset(weekOffset + 1)}
-        >
-          Next →
-        </button>
+        {!logoOnly && (
+          <>
+            <div style={weekDisplayStyle}>{formatWeekRange(weekStart)}</div>
+            <button
+              style={buttonStyle}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#5cc896'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = colors.teal}
+              onClick={() => setWeekOffset(weekOffset - 1)}
+            >
+              ← Previous
+            </button>
+            <button
+              style={buttonStyle}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#5cc896'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = colors.teal}
+              onClick={() => setWeekOffset(weekOffset + 1)}
+            >
+              Next →
+            </button>
+          </>
+        )}
       </div>
       <div style={headerStyle}>
         <div>Product</div>

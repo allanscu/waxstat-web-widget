@@ -6,8 +6,8 @@ const WidgetContainer = ({ format = 'responsive' }) => {
   // Standard ad sizes (in pixels)
   const formats = {
     // Horizontal Banners
-    leaderboard: { width: 728, height: 90, columns: 4, items: 4 },
-    largeLeaderboard: { width: 970, height: 90, columns: 5, items: 5 },
+    leaderboard: { width: 728, height: 90, columns: 1, items: 1 },
+    largeLeaderboard: { width: 970, height: 90, columns: 1, items: 1 },
     horizontalBanner: { width: 600, height: 100, columns: 3, items: 3 },
 
     // Squares
@@ -42,8 +42,9 @@ const WidgetContainer = ({ format = 'responsive' }) => {
     boxSizing: 'border-box',
   };
 
-  // For leaderboard and other horizontal banners, hide nav and header to save space
-  const isLeaderboard = format === 'leaderboard' || format === 'largeLeaderboard' || format === 'horizontalBanner';
+  // For leaderboards, show only logo; for other banners, hide nav and header
+  const isLeaderboard = format === 'leaderboard' || format === 'largeLeaderboard';
+  const isHorizontalBanner = format === 'leaderboard' || format === 'largeLeaderboard' || format === 'horizontalBanner';
 
   return (
     <div style={containerStyle}>
@@ -52,8 +53,9 @@ const WidgetContainer = ({ format = 'responsive' }) => {
           title={null}
           limit={config.items}
           hideTitle={true}
-          hideNav={isLeaderboard}
-          hideHeader={isLeaderboard}
+          logoOnly={isLeaderboard}
+          hideNav={!isLeaderboard && isHorizontalBanner}
+          hideHeader={isHorizontalBanner}
         />
       </div>
     </div>
