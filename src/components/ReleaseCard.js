@@ -31,6 +31,7 @@ const ReleaseCard = ({ box, waxstatUrl = 'https://www.waxstat.com', containerWid
   // Responsive sizing based on container width
   const isVeryNarrow = containerWidth < 200;
   const isNarrow = containerWidth < 350;
+  const isSquare = containerWidth >= 250 && containerWidth < 350; // Square formats (300x300, 250x250)
   const showImage = containerWidth > 250; // Show images in medium and larger formats
 
   // Use image from box object if available
@@ -76,7 +77,7 @@ const ReleaseCard = ({ box, waxstatUrl = 'https://www.waxstat.com', containerWid
     padding: isVeryNarrow ? '4px 6px' : isNarrow ? '6px 8px' : '12px 16px',
     display: isVeryNarrow ? 'flex' : 'grid',
     flexDirection: isVeryNarrow ? 'row' : undefined,
-    gridTemplateColumns: isVeryNarrow ? undefined : '4fr 1fr 1fr',
+    gridTemplateColumns: isVeryNarrow ? undefined : (isSquare ? '2fr 1fr 1fr' : '4fr 1fr 1fr'),
     gap: isNarrow ? '4px' : isVeryNarrow ? '3px' : '16px',
     alignItems: 'center',
     transition: 'background-color 0.2s ease',
@@ -127,7 +128,10 @@ const ReleaseCard = ({ box, waxstatUrl = 'https://www.waxstat.com', containerWid
     fontSize: isVeryNarrow ? '8px' : isNarrow ? '9px' : '13px',
     color: colors.darkGray,
     whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
     flex: isVeryNarrow ? '0 0 auto' : 'auto',
+    minWidth: 0,
   };
 
   const priceStyle = {
@@ -135,7 +139,10 @@ const ReleaseCard = ({ box, waxstatUrl = 'https://www.waxstat.com', containerWid
     fontWeight: '600',
     color: colors.teal,
     whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
     flex: isVeryNarrow ? '0 0 auto' : 'auto',
+    minWidth: 0,
   };
 
   return (
