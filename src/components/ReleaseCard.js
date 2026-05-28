@@ -50,6 +50,12 @@ const ReleaseCard = ({ box, waxstatUrl = 'https://www.waxstat.com', containerWid
       .join(' ');
   };
 
+  const formatReleaseDate = (dateStr) => {
+    if (!dateStr) return '-';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
+
   const formatSeasonDate = (dateStr) => {
     if (!dateStr) return '-';
     const date = new Date(dateStr);
@@ -188,7 +194,9 @@ const ReleaseCard = ({ box, waxstatUrl = 'https://www.waxstat.com', containerWid
         )}
         <div style={nameStyle}>{capitalizeWords(box.name)}</div>
       </div>
-      <div style={cellStyle}>{formatSeasonDate(box.release_date)}</div>
+      <div style={cellStyle}>
+        {containerWidth > 600 ? formatReleaseDate(box.release_date) : formatSeasonDate(box.release_date)}
+      </div>
       <div style={priceStyle}>${price > 0 ? price.toFixed(2) : '-'}</div>
     </a>
   );
