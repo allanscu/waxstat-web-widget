@@ -187,11 +187,12 @@ export const scrapeWeeklyReleases = async (weekStart) => {
     // Always go through the widget host's scrape serverless function. Direct
     // scraping from the browser is blocked by CORS on waxstat.com.
     const data = await getJson(`api/scrape-releases?startDate=${startStr}&endDate=${endStr}`);
-    const slugs = data.slugs || [];
+    const releases = data.releases || [];
 
-    // Fetch detailed info for each slug
+    // Fetch detailed info for each release (which includes scraped release_date)
     const boxes = [];
-    for (const slug of slugs.slice(0, 5)) {
+    for (const release of releases.slice(0, 5)) {
+      const slug = release.slug;
       try {
         const details = await getBoxBySlug(slug);
         if (details) {
@@ -199,7 +200,7 @@ export const scrapeWeeklyReleases = async (weekStart) => {
             slug: details.slug || slug,
             name: details.name || slug.replace(/-/g, ' '),
             'waxstat-avg': details['waxstat-avg'],
-            release_date: details.release_date,
+            release_date: release.release_date, // Use scraped date
             image: `https://slabstat-production.s3.amazonaws.com/Listings/${slug}.png`
           });
         } else {
@@ -208,7 +209,7 @@ export const scrapeWeeklyReleases = async (weekStart) => {
             slug,
             name: slug.replace(/-/g, ' '),
             'waxstat-avg': null,
-            release_date: null,
+            release_date: release.release_date,
             image: `https://slabstat-production.s3.amazonaws.com/Listings/${slug}.png`
           });
         }
@@ -218,7 +219,7 @@ export const scrapeWeeklyReleases = async (weekStart) => {
           slug,
           name: slug.replace(/-/g, ' '),
           'waxstat-avg': null,
-          release_date: null,
+          release_date: release.release_date,
           image: `https://slabstat-production.s3.amazonaws.com/Listings/${slug}.png`
         });
       }
