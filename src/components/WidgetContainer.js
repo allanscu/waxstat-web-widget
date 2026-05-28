@@ -42,6 +42,9 @@ const WidgetContainer = ({ format = 'responsive' }) => {
     boxSizing: 'border-box',
   };
 
+  // For leaderboard and other horizontal banners, hide nav and header to save space
+  const isLeaderboard = format === 'leaderboard' || format === 'largeLeaderboard' || format === 'horizontalBanner';
+
   return (
     <div style={containerStyle}>
       <div style={innerStyle}>
@@ -49,6 +52,8 @@ const WidgetContainer = ({ format = 'responsive' }) => {
           title={null}
           limit={config.items}
           hideTitle={true}
+          hideNav={isLeaderboard}
+          hideHeader={isLeaderboard}
         />
       </div>
     </div>

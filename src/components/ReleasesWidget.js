@@ -8,6 +8,8 @@ const ReleasesWidget = ({
   title = "Recent Releases",
   limit = 5,
   hideTitle = false,
+  hideNav = false,
+  hideHeader = false,
   itemStyle = {}
 }) => {
   const [releases, setReleases] = useState([]);
@@ -84,7 +86,7 @@ const ReleasesWidget = ({
   };
 
   const headerStyle = {
-    display: isVeryNarrow ? 'none' : 'grid',
+    display: (hideHeader || isVeryNarrow) ? 'none' : 'grid',
     gridTemplateColumns: '4fr 1fr 1fr',
     gap: isNarrow ? '8px' : '16px',
     padding: isVeryNarrow ? '4px 8px' : isNarrow ? '6px 8px' : '12px 16px',
@@ -121,7 +123,7 @@ const ReleasesWidget = ({
   };
 
   const navigationStyle = {
-    display: 'flex',
+    display: hideNav ? 'none' : 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: isNarrow ? '8px 12px' : '12px 16px',
