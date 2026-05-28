@@ -233,62 +233,43 @@ export const scrapeWeeklyReleases = async (weekStart) => {
 
 export const getWeekReleases = async (weekStart, limit = 50, slug = null) => {
   try {
-    // If a specific slug is provided, fetch just that box
+    // If a specific slug is provided, fetch that box with release date from scrape
     if (slug) {
+      console.log(`Fetching specific box: ${slug}`);
+      // First try to get box details from API for name, price, etc.
       const box = await getBoxBySlug(slug);
-      return box ? [box] : [];
-    }
 
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekEnd.getDate() + 6);
+      // Then scrape the current week to get release date for this box
+      const weekEnd = new Date(weekStart || new Date());
+      if (!weekStart) {
+        weekStart = new Date(weekEnd);
+        weekStart.setDate(weekEnd.getDate() - weekEnd.getDay());
+      }
+      const scrapedReleases = await scrapeWeeklyReleases(weekStart);
+      const scrapedBox = scrapedReleases.find(b => b.slug === slug);
 
-    console.log(`Fetching releases for week ${weekStart.toDateString()}`);
-    const data = await getJson(`api/boxes-search?query=2026`);
-    const boxes = data.boxes || [];
-
-    // Filter releases within the week and sort by date, add image URLs
-    // Don't filter by week range - show all releases with their actual dates
-    let weekReleases = boxes
-      .filter(box => {
-        if (!box.slug) {
-          console.warn('Skipping box without slug:', box);
-          return false;
-        }
-        // Keep boxes even if they don't have a release_date
-        return true;
-      })
-      .map(box => ({
-        ...box,
-        slug: box.slug || box.id,
-        image: `https://slabstat-production.s3.amazonaws.com/Listings/${box.slug || box.id}.png`
-      }))
-      .sort((a, b) => {
-        // Sort by release_date if available, otherwise by name
-        if (a.release_date && b.release_date) {
-          const dateA = new Date(a.release_date);
-          const dateB = new Date(b.release_date);
-          return dateA - dateB; // Earliest first
-        }
-        return 0;
-      })
-      .slice(0, limit);
-
-    // If no results from API, try scraping waxstat.com
-    if (weekReleases.length === 0) {
-      console.log('No API results, falling back to scraping...');
-      weekReleases = await scrapeWeeklyReleases(weekStart);
-    }
-
-    console.log('Week releases:', weekReleases);
-    return weekReleases;
-  } catch (error) {
-    console.error('Error fetching week releases, trying scrape fallback:', error.message);
-    // Fallback to scraping if API fails
-    try {
-      return await scrapeWeeklyReleases(weekStart);
-    } catch (scrapeError) {
-      console.error('Scrape fallback also failed:', scrapeError.message);
+      if (box && scrapedBox) {
+        return [{
+          ...box,
+          release_date: scrapedBox.release_date,
+          image: scrapedBox.image || `https://slabstat-production.s3.amazonaws.com/Listings/${slug}.png`
+        }];
+      } else if (scrapedBox) {
+        return [scrapedBox];
+      } else if (box) {
+        return [box];
+      }
       return [];
     }
+
+    // For weekly releases, always scrape to get accurate release dates
+    console.log(`Fetching releases for week ${weekStart.toDateString()}`);
+    const weekReleases = await scrapeWeeklyReleases(weekStart);
+
+    console.log('Week releases:', weekReleases);
+    return weekReleases.slice(0, limit);
+  } catch (error) {
+    console.error('Error fetching week releases:', error.message);
+    return [];
   }
 };
