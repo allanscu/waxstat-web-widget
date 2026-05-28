@@ -1,8 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { colors } from '../styles/brandColors';
 
+// When a box's upstream product image is missing from S3, swap in a brand
+// logo so the row never renders a blank cell. URLs point at the same
+// slabstat-production bucket so they share CDN/caching with the box images.
+const BRAND_FALLBACKS = [
+  {
+    match: /panini/i,
+    url: 'https://slabstat-production.s3.amazonaws.com/Listings/box-panini-logo-20250613173139144.jpg',
+  },
+];
+
+function brandFallbackUrl(box) {
+  const haystack = `${box?.name || ''} ${box?.slug || ''} ${box?.id || ''}`;
+  const hit = BRAND_FALLBACKS.find((b) => b.match.test(haystack));
+  return hit ? hit.url : null;
+}
+
 const ReleaseCard = ({ box, waxstatUrl = 'https://www.waxstat.com', containerWidth = 728 }) => {
   const [imageUrl, setImageUrl] = useState(null);
+  const [usedFallback, setUsedFallback] = useState(false);
   const price = parseFloat(box['waxstat-avg']) || 0;
   const slug = box.slug || box.id;
   const boxUrl = `${waxstatUrl}/boxes/${slug}`;
@@ -20,6 +37,7 @@ const ReleaseCard = ({ box, waxstatUrl = 'https://www.waxstat.com', containerWid
   useEffect(() => {
     if (box.image) {
       setImageUrl(box.image);
+      setUsedFallback(false);
     }
   }, [box.image]);
 
@@ -142,6 +160,17 @@ const ReleaseCard = ({ box, waxstatUrl = 'https://www.waxstat.com', containerWid
                 alt={box.name}
                 style={imageImgStyle}
                 onError={(e) => {
+                  // First failure: try a brand-specific fallback if we know one.
+                  // Second failure (e.g. brand asset itself missing): give up
+                  // and hide so the row collapses to the emoji.
+                  if (!usedFallback) {
+                    const fallback = brandFallbackUrl(box);
+                    if (fallback) {
+                      setUsedFallback(true);
+                      e.target.src = fallback;
+                      return;
+                    }
+                  }
                   e.target.style.display = 'none';
                 }}
               />
