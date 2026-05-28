@@ -1,4 +1,6 @@
-export default async function handler(req, res) {
+import { withCors } from './_cors.js';
+
+async function handler(req, res) {
   const { slug } = req.query;
 
   if (!slug) {
@@ -20,9 +22,16 @@ export default async function handler(req, res) {
     }
 
     const data = await response.json();
-    res.status(200).json(data);
+    // Upstream wraps a single result as { boxes: [box] }. Unwrap so the
+    // client can read fields like `waxstat-avg` directly off the response.
+    const box = Array.isArray(data?.boxes) && data.boxes.length > 0
+      ? data.boxes[0]
+      : data;
+    res.status(200).json(box);
   } catch (error) {
     console.error('Error fetching box details:', error);
     res.status(500).json({ error: error.message });
   }
 }
+
+export default withCors(handler);

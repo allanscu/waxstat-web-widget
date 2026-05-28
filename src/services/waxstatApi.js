@@ -1,20 +1,24 @@
-import axios from 'axios';
+import { widgetUrl } from '../lib/widgetBase';
 
 const API_KEY = process.env.REACT_APP_API_KEY;
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 console.log('API Config:', { API_BASE_URL, API_KEY: API_KEY ? '***set***' : 'NOT SET' });
 
-// Create axios client for waxstat API calls
-const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'API-KEY': API_KEY,
-  },
-});
-
-// Helper to determine if we should use serverless functions
-const isProduction = typeof window !== 'undefined' && window.location.hostname !== 'localhost';
+// All data requests are proxied through the widget host's serverless functions
+// (/api/* on the widget deployment). Two reasons:
+//   1. The API key stays server-side instead of shipping in every embedder's JS.
+//   2. Avoids cross-origin requests to api.waxstat.com from arbitrary embedder
+//      origins, which would require CORS the upstream API doesn't provide.
+// `widgetUrl` resolves the path against the widget host (set by widget.js).
+async function getJson(apiPath) {
+  const url = widgetUrl(apiPath);
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Widget proxy ${apiPath} returned ${response.status}`);
+  }
+  return response.json();
+}
 
 // Cache management for box data
 const CACHE_KEY_PREFIX = 'waxstat-box-';
@@ -48,14 +52,8 @@ const setCachedBox = (slug, data) => {
 
 export const searchBoxes = async (term) => {
   try {
-    if (isProduction) {
-      const response = await fetch(`/api/boxes-search?query=${encodeURIComponent(term)}`);
-      const data = await response.json();
-      return data.boxes || [];
-    } else {
-      const response = await apiClient.get(`/v1/boxes/search/${term}`);
-      return response.data.boxes || [];
-    }
+    const data = await getJson(`api/boxes-search?query=${encodeURIComponent(term)}`);
+    return data.boxes || [];
   } catch (error) {
     console.error('Error searching boxes:', error);
     throw error;
@@ -71,14 +69,7 @@ export const getBoxBySlug = async (slug) => {
       return cached;
     }
 
-    let data;
-    if (isProduction) {
-      const response = await fetch(`/api/box-details?slug=${encodeURIComponent(slug)}`);
-      data = await response.json();
-    } else {
-      const response = await apiClient.get(`/v1/boxes/${slug}`);
-      data = response.data;
-    }
+    const data = await getJson(`api/box-details?slug=${encodeURIComponent(slug)}`);
 
     // Cache the result
     if (data) {
@@ -98,16 +89,8 @@ export const getBoxBySlug = async (slug) => {
 export const getTopReleases = async (limit = 5) => {
   try {
     console.log('Fetching releases...');
-    let boxes = [];
-
-    if (isProduction) {
-      const response = await fetch(`/api/boxes-search?query=2026`);
-      const data = await response.json();
-      boxes = data.boxes || [];
-    } else {
-      const response = await apiClient.get(`/v1/boxes/search/2026`);
-      boxes = response.data.boxes || [];
-    }
+    const data = await getJson(`api/boxes-search?query=2026`);
+    let boxes = data.boxes || [];
 
     // Sort by release_date (most recent first)
     let sortedByDate = boxes
@@ -156,14 +139,7 @@ export const getBoxDetails = async (slug) => {
       };
     }
 
-    let box;
-    if (isProduction) {
-      const response = await fetch(`/api/box-details?slug=${encodeURIComponent(slug)}`);
-      box = await response.json();
-    } else {
-      const response = await apiClient.get(`/v1/boxes/${slug}`);
-      box = response.data;
-    }
+    const box = await getJson(`api/box-details?slug=${encodeURIComponent(slug)}`);
 
     // Cache the result
     if (box) {
@@ -208,30 +184,10 @@ export const scrapeWeeklyReleases = async (weekStart) => {
 
     console.log(`Scraping releases for week: ${startStr}-${endStr}`);
 
-    // Use serverless function to scrape
-    let slugs = [];
-    if (isProduction) {
-      const response = await fetch(`/api/scrape-releases?startDate=${startStr}&endDate=${endStr}`);
-      const data = await response.json();
-      slugs = data.slugs || [];
-    } else {
-      const url = `https://www.waxstat.com/release-dates/${startStr}-${endStr}`;
-      const response = await fetch(url);
-      const html = await response.text();
-
-      // Extract box slugs from actual product rows
-      const slugSet = new Set();
-      const slugMatches = html.matchAll(/href="\/boxes\/([^"]+)"\s+data-turbolinks="false"/g);
-
-      for (const match of slugMatches) {
-        const slug = match[1];
-        // Filter out template syntax and invalid slugs
-        if (slug && !slug.includes('{{') && !slug.includes('}}') && slug.length > 3) {
-          slugSet.add(slug);
-        }
-      }
-      slugs = Array.from(slugSet);
-    }
+    // Always go through the widget host's scrape serverless function. Direct
+    // scraping from the browser is blocked by CORS on waxstat.com.
+    const data = await getJson(`api/scrape-releases?startDate=${startStr}&endDate=${endStr}`);
+    const slugs = data.slugs || [];
 
     // Fetch detailed info for each slug
     const boxes = [];
@@ -271,16 +227,8 @@ export const getWeekReleases = async (weekStart, limit = 50) => {
     weekEnd.setDate(weekEnd.getDate() + 6);
 
     console.log(`Fetching releases for week ${weekStart.toDateString()}`);
-    let boxes = [];
-
-    if (isProduction) {
-      const response = await fetch(`/api/boxes-search?query=2026`);
-      const data = await response.json();
-      boxes = data.boxes || [];
-    } else {
-      const response = await apiClient.get(`/v1/boxes/search/2026`);
-      boxes = response.data.boxes || [];
-    }
+    const data = await getJson(`api/boxes-search?query=2026`);
+    const boxes = data.boxes || [];
 
     // Filter releases within the week and sort by date, add image URLs
     let weekReleases = boxes

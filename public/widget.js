@@ -1,15 +1,18 @@
 (function() {
-  // Check if React and ReactDOM are already loaded
-  if (window.React && window.ReactDOM) {
-    initializeWidget();
-  } else {
-    // Load React and ReactDOM from CDN
-    loadScript('https://unpkg.com/react@18/umd/react.production.min.js', () => {
-      loadScript('https://unpkg.com/react-dom@18/umd/react-dom.production.min.js', () => {
-        initializeWidget();
-      });
-    });
-  }
+  // Resolve widget-app.js relative to this script's URL so the loader works
+  // from any host (production, staging, localhost), not just the prod CDN.
+  var scriptUrl = (document.currentScript && document.currentScript.src) ||
+    'https://waxstat-web-widget.vercel.app/widget.js';
+  var widgetBase = new URL('./', scriptUrl).href;
+  var widgetAppUrl = new URL('./widget-app.js', scriptUrl).href;
+
+  // Expose the widget's own host base URL so the bundled app can resolve its
+  // own assets (logos) and serverless endpoints (/api/*) without colliding
+  // with the embedder's relative paths.
+  window.__WAXSTAT_WIDGET_BASE__ = widgetBase;
+
+  // widget-app.js bundles its own React, so we no longer need to preload UMD.
+  initializeWidget();
 
   function loadScript(src, callback) {
     const script = document.createElement('script');
@@ -29,17 +32,14 @@
       return;
     }
 
-    // Load the widget app
-    loadScript(
-      'https://waxstat-web-widget.vercel.app/widget-app.js',
-      () => {
-        if (window.WaxstatWidget) {
-          window.WaxstatWidget.render(container);
-        } else {
-          showFallback();
-        }
+    // Load the widget app (resolved relative to widget.js's own URL)
+    loadScript(widgetAppUrl, () => {
+      if (window.WaxstatWidget) {
+        window.WaxstatWidget.render(container);
+      } else {
+        showFallback();
       }
-    );
+    });
   }
 
   function showFallback() {

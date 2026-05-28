@@ -25,3 +25,6 @@ yarn-error.log*
 .env.local
 .env.*.local
 .vercel
+
+# Claude Code local state
+.claude/

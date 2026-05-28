@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import ReleaseCard from './ReleaseCard';
 import { getWeekReleases } from '../services/waxstatApi';
 import { colors } from '../styles/brandColors';
+import { widgetUrl } from '../lib/widgetBase';
 
 const ReleasesWidget = ({
   title = "Recent Releases",
@@ -175,7 +176,7 @@ const ReleasesWidget = ({
     <div ref={containerRef} style={containerStyle}>
       <div style={navigationStyle}>
         <img
-          src="/waxstat-logo.svg"
+          src={widgetUrl('waxstat-logo.svg')}
           alt="Waxstat Release Calendar"
           style={logoStyle}
         />

@@ -21,9 +21,14 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build:app": "react-scripts build",
+    "build:widget": "node scripts/build-widget.js",
+    "build": "npm run build:app && npm run build:widget",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.2"
   },
   "eslintConfig": {
     "extends": [

@@ -1,4 +1,6 @@
-export default async function handler(req, res) {
+import { withCors } from './_cors.js';
+
+async function handler(req, res) {
   const { startDate, endDate } = req.query;
 
   if (!startDate || !endDate) {
@@ -35,3 +37,5 @@ export default async function handler(req, res) {
     res.status(500).json({ error: error.message, slugs: [] });
   }
 }
+
+export default withCors(handler);

@@ -1,4 +1,6 @@
-export default async function handler(req, res) {
+import { withCors } from './_cors.js';
+
+async function handler(req, res) {
   const { query } = req.query;
 
   if (!query) {
@@ -26,3 +28,5 @@ export default async function handler(req, res) {
     res.status(500).json({ error: error.message, boxes: [] });
   }
 }
+
+export default withCors(handler);
